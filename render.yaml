@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: wasteconnect-bom-analysis
+    env: static
+    buildCommand: echo "No build required for static site"
+    staticPublishPath: ./
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: RENDER_ROOT_DIR
+        value: ./ 
