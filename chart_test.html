@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chart.js Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-5xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Chart.js Test</h1>
+        
+        <!-- Pipeline Analysis -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">Pipeline Analysis</h2>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Pipeline Efficiency</h3>
+                        <div class="h-64">
+                            <canvas id="chart1"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Volume by Stage</h3>
+                        <div class="h-64">
+                            <canvas id="chart2"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Waste Analysis -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">Waste Analysis</h2>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Top Costs</h3>
+                        <div class="h-64">
+                            <canvas id="chart3"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Top Revenue</h3>
+                        <div class="h-64">
+                            <canvas id="chart4"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, creating charts...');
+            
+            // Sample data
+            const data = {
+                labels: ['Stage 1', 'Stage 2', 'Stage 3', 'Stage 4', 'Stage 5', 'Stage 6'],
+                values1: [95, 82, 88, 78, 92, 97],
+                values2: [120, 200, 150, 80, 70, 50],
+                values3: [90, 150, 100, 60, 30, 20],
+                labels2: ['Type A', 'Type B', 'Type C', 'Type D', 'Type E'],
+                values4: [4200, 3100, 2200, 1100, 850],
+                values5: [3800, 2900, 1800, 1200, 700]
+            };
+            
+            // Chart 1: Pipeline Efficiency
+            const ctx1 = document.getElementById('chart1').getContext('2d');
+            new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Efficiency (%)',
+                        data: data.values1,
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            // Chart 2: Volume by Stage
+            const ctx2 = document.getElementById('chart2').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: 'Waste',
+                            data: data.values2,
+                            backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'By-product',
+                            data: data.values3,
+                            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            // Chart 3: Top Costs
+            const ctx3 = document.getElementById('chart3').getContext('2d');
+            new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: data.labels2,
+                    datasets: [{
+                        label: 'Cost ($)',
+                        data: data.values4,
+                        backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            // Chart 4: Top Revenue
+            const ctx4 = document.getElementById('chart4').getContext('2d');
+            new Chart(ctx4, {
+                type: 'bar',
+                data: {
+                    labels: data.labels2,
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data: data.values5,
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            console.log('Charts created successfully');
+        });
+    </script>
+</body>
+</html> 

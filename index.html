@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Textile Material Flow Analysis Report</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        card: '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .content-wrapper {
+            flex: 1 0 auto;
+        }
+        
+        .footer {
+            flex-shrink: 0;
+        }
+        
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .stats-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 70%);
+            pointer-events: none;
+        }
+        
+        .animate-in {
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .chart-container {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .chart-container:hover {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-blue-50">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="https://wasteconnect-frontend.onrender.com/" class="text-xl font-bold text-blue-800">WasteConnect</a>
+                </div>
+                <div class="flex items-center space-x-8">
+                    <a href="https://wasteconnect-frontend.onrender.com/" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Home</a>
+                    <a href="https://wasteconnect-frontend.onrender.com/mission" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Mission</a>
+                    <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">BoM Analysis</a>
+                    <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Pricing</a>
+                    <a href="https://wasteconnect-frontend.onrender.com/chat" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Chat</a>
+                    <a href="https://wasteconnect-frontend.onrender.com/contact" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Contact</a>
+                    <a href="https://wasteconnect-frontend.onrender.com/chat" class="ml-8 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-500 hover:bg-green-600">Get Free AI Assessment</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="content-wrapper">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+        
+        <!-- Header -->
+        <header class="text-center mb-16 animate-in" style="animation-delay: 0.1s;">
+            <div class="inline-block mb-4 px-6 py-2 bg-blue-100 rounded-full text-blue-800 font-medium text-sm">
+                Material Flow Analysis Report
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                Textile Manufacturing Waste Analysis
+            </h1>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                Comprehensive analysis of material efficiency, waste management, and optimization opportunities
+                for the Jan-May 2025 production period
+            </p>
+        </header>
+        
+        <!-- Executive Summary -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Executive Summary</h2>
+            <div class="bg-white rounded-lg shadow-md p-6" id="summary-content">
+                <div class="flex justify-between items-center mb-6">
+                    <div></div>
+                    <a href="synth_BoM.csv" download class="flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span class="font-medium">Download BoM Data</span>
+                    </a>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200">
+                        <h3 class="text-xl font-semibold text-blue-800">Material Efficiency</h3>
+                        <p class="text-3xl font-bold mt-2">71.0%</p>
+                        <p class="text-sm text-blue-600 mt-2">3.5% below target efficiency</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-xl border border-red-200">
+                        <h3 class="text-xl font-semibold text-red-800">Financial Impact</h3>
+                        <p class="text-3xl font-bold mt-2">-$10,980</p>
+                        <p class="text-sm text-red-600 mt-2">Net cost from waste vs. by-product</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200">
+                        <h3 class="text-lg font-semibold text-green-800">By-product Revenue</h3>
+                        <p class="text-2xl font-bold mt-2">$8,420</p>
+                        <p class="text-sm text-green-600 mt-2">From recovered materials</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
+                        <h3 class="text-lg font-semibold text-purple-800">Waste Disposal Cost</h3>
+                        <p class="text-2xl font-bold mt-2">$19,400</p>
+                        <p class="text-sm text-purple-600 mt-2">Total waste management expenses</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-amber-50 to-amber-100 p-6 rounded-xl border border-amber-200">
+                        <h3 class="text-lg font-semibold text-amber-800">Optimization Potential</h3>
+                        <p class="text-2xl font-bold mt-2">$14,200</p>
+                        <p class="text-sm text-amber-600 mt-2">Estimated annual savings</p>
+                    </div>
+                </div>
+                
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <h3 class="text-lg font-semibold mb-4">Key Findings</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-start">
+                            <svg class="h-5 w-5 mr-2 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <span>Material loss in cutting stage exceeds planned parameters by 12.3%</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="h-5 w-5 mr-2 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <span>Chemical waste disposal costs 15.1% higher than industry benchmarks</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="h-5 w-5 mr-2 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Denim scraps represent highest by-product value recovery opportunity</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="h-5 w-5 mr-2 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Rev C of JEANS-STR-MEDW-005 shows 16.7% improved material efficiency</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Data Sources -->
+        <section id="data-sources" class="mb-16 animate-in" style="animation-delay: 0.3s;">
+            <div class="flex items-center space-x-2 mb-6">
+                <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z" />
+                        <path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z" />
+                        <path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z" />
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Analysis Data Sources</h2>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100">
+                <div class="p-8">
+                    <div class="prose max-w-none text-gray-700">
+                        <p class="mb-4">To perform this complete analysis, the following data was integrated:</p>
+                        
+                        <ul class="space-y-4 list-none pl-0">
+                            <li class="pl-8 relative border-l-2 border-indigo-200 py-1">
+                                <span class="font-semibold text-indigo-800 block mb-1">Provided Bill of Materials (BoM) Data</span>
+                                <p class="text-gray-600">
+                                    The core structure and planned component requirements for three products JEANS-STR-MEDW-005 with revisions B and C, 
+                                    JEANS-SKY-HRANK-IND with revision A, and POLO-BASIC-NAVY with revision A, including planned Quantity per Unit Net, 
+                                    Loss / Scrap Method, Loss / Scrap Value, Calculated Required Qty Gross, and Sequence / Assembly Step for each component line item.
+                                </p>
+                            </li>
+                            
+                            <li class="pl-8 relative border-l-2 border-blue-200 py-1">
+                                <span class="font-semibold text-blue-800 block mb-1">User-Provided Component Cost Data</span>
+                                <p class="text-gray-600">
+                                    The actual unit purchase cost for each unique Component SKU used in the BoMs during the analysis period.
+                                </p>
+                            </li>
+                            
+                            <li class="pl-8 relative border-l-2 border-purple-200 py-1">
+                                <span class="font-semibold text-purple-800 block mb-1">User-Provided Waste/By-product Master Data</span>
+                                <p class="text-gray-600">
+                                    A predefined catalog of all potential waste and by-product streams generated in the manufacturing process, including 
+                                    classification (Waste or By-product), associated type unit value/cost, and defined links between BoM components 
+                                    and corresponding waste/by-product types.
+                                </p>
+                            </li>
+                            
+                            <li class="pl-8 relative border-l-2 border-green-200 py-1">
+                                <span class="font-semibold text-green-800 block mb-1">User-Provided Manufacturing Stage Data</span>
+                                <p class="text-gray-600">
+                                    A defined sequence of distinct process steps in the manufacturing pipeline (e.g., Fabric Receiving, Cutting, Sewing, 
+                                    Washing/Finishing, Packing, etc.).
+                                </p>
+                            </li>
+                            
+                            <li class="pl-8 relative border-l-2 border-yellow-200 py-1">
+                                <span class="font-semibold text-yellow-800 block mb-1">User-Provided Actual Production Data</span>
+                                <p class="text-gray-600">
+                                    Records detailing the actual quantity of finished goods produced for each Production Order within the Jan-May 2025 timeframe.
+                                </p>
+                            </li>
+                            
+                            <li class="pl-8 relative border-l-2 border-orange-200 py-1">
+                                <span class="font-semibold text-orange-800 block mb-1">User-Provided Actual Material Transaction Data (Core of MFRO)</span>
+                                <p class="text-gray-600">
+                                    Records generated during production detailing the Manufacturing Stage, Production Order, Waste/By-product Type, 
+                                    and Actual Quantity Recorded for every instance waste or by-product is captured.
+                                </p>
+                            </li>
+                            
+                            <li class="pl-8 relative border-l-2 border-red-200 py-1">
+                                <span class="font-semibold text-red-800 block mb-1">User-Provided Actual Financial Transaction Data</span>
+                                <p class="text-gray-600">
+                                    Records of the actual revenue received from sales of collected by-products and the actual costs paid for the 
+                                    disposal of waste streams during the period.
+                                </p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Pipeline Analysis -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Pipeline Analysis</h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-100">
+                        <h3 class="text-xl font-semibold mb-6 text-center text-gray-800">Pipeline Efficiency by Stage</h3>
+                        <div class="h-80">
+                            <canvas id="pipelinePercentageChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-100">
+                        <h3 class="text-xl font-semibold mb-6 text-center text-gray-800">Stage Waste/By-product Volumes</h3>
+                        <div class="h-80">
+                            <canvas id="pipelineVolumeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Waste Analysis -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Waste & By-product Type Analysis</h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-100">
+                        <h3 class="text-xl font-semibold mb-6 text-center text-gray-800">Top Waste Disposal Costs</h3>
+                        <div class="h-80">
+                            <canvas id="wasteCostChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-100">
+                        <h3 class="text-xl font-semibold mb-6 text-center text-gray-800">Top By-product Revenue</h3>
+                        <div class="h-80">
+                            <canvas id="byproductRevenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Potential By-product Opportunities Table -->
+        <section id="byproduct-opportunities" class="mb-16 animate-in" style="animation-delay: 0.55s;">
+            <div class="flex items-center space-x-2 mb-6">
+                <div class="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6.672 1.911a1 1 0 10-1.932.518l.259.966a1 1 0 001.932-.518l-.26-.966zM2.429 4.74a1 1 0 10-.517 1.932l.966.259a1 1 0 00.517-1.932l-.966-.26zm8.814-.569a1 1 0 00-1.415-1.414l-.707.707a1 1 0 101.415 1.415l.707-.708zm-7.071 7.072l.707-.707A1 1 0 003.465 9.12l-.708.707a1 1 0 001.415 1.415zm3.2-5.171a1 1 0 00-1.3 1.3l4 10a1 1 0 001.823.075l1.38-2.759 3.018 3.02a1 1 0 001.414-1.415l-3.019-3.02 2.76-1.379a1 1 0 00-.076-1.822l-10-4z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Potential By-product Opportunities</h2>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100">
+                <div class="p-6">
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-700 text-left">
+                                    <th class="px-4 py-3 font-semibold border-b border-gray-200">Product / BoM Revision</th>
+                                    <th class="px-4 py-3 font-semibold border-b border-gray-200">Effective From Date</th>
+                                    <th class="px-4 py-3 font-semibold border-b border-gray-200">Component SKU / Item Code</th>
+                                    <th class="px-4 py-3 font-semibold border-b border-gray-200">Component Description</th>
+                                    <th class="px-4 py-3 font-semibold border-b border-gray-200">Primary Location/Stage</th>
+                                    <th class="px-4 py-3 font-semibold border-b border-gray-200">Calculated Loss Qty (per Unit)</th>
+                                    <th class="px-4 py-3 font-semibold border-b border-gray-200">Usage UoM</th>
+                                    <th class="px-4 py-3 font-semibold border-b border-gray-200">Potential By-product Type (Simulated)</th>
+                                    <th class="px-4 py-3 font-semibold border-b border-gray-200">Classification</th>
+                                    <th class="px-4 py-3 font-semibold border-b border-gray-200">Estimated Potential Value (Simulated)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                    <td class="px-4 py-3 text-gray-800">JEANS-STR-MEDW-005 / Rev B</td>
+                                    <td class="px-4 py-3 text-gray-800">2025-01-10</td>
+                                    <td class="px-4 py-3 text-gray-800">FAB-DENIM-A-010</td>
+                                    <td class="px-4 py-3 text-gray-800">13oz Cone Mill Denim</td>
+                                    <td class="px-4 py-3 text-gray-800">Cut-01</td>
+                                    <td class="px-4 py-3 text-gray-800">0.234</td>
+                                    <td class="px-4 py-3 text-gray-800">YDS</td>
+                                    <td class="px-4 py-3 text-green-700 font-medium">Denim Fabric Scraps</td>
+                                    <td class="px-4 py-3 text-green-700 font-medium">By-product</td>
+                                    <td class="px-4 py-3 text-gray-800">$0.35 (e.g., @$1.50/YDS scrap value)</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                    <td class="px-4 py-3 text-gray-800">JEANS-STR-MEDW-005 / Rev B</td>
+                                    <td class="px-4 py-3 text-gray-800">2025-01-10</td>
+                                    <td class="px-4 py-3 text-gray-800">TRIM-SEL-12MM</td>
+                                    <td class="px-4 py-3 text-gray-800">12mm Cotton Selvedge Trim</td>
+                                    <td class="px-4 py-3 text-gray-800">Cut-01</td>
+                                    <td class="px-4 py-3 text-gray-800">0.325</td>
+                                    <td class="px-4 py-3 text-gray-800">M</td>
+                                    <td class="px-4 py-3 text-green-700 font-medium">SELVEDGE-TRIM</td>
+                                    <td class="px-4 py-3 text-green-700 font-medium">By-product</td>
+                                    <td class="px-4 py-3 text-gray-800">$0.08 (e.g., @$0.25/M recovered value)</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                    <td class="px-4 py-3 text-gray-800">JEANS-STR-MEDW-005 / Rev C</td>
+                                    <td class="px-4 py-3 text-gray-800">2025-03-15</td>
+                                    <td class="px-4 py-3 text-gray-800">FAB-DENIM-A-010</td>
+                                    <td class="px-4 py-3 text-gray-800">13oz Cone Mill Denim</td>
+                                    <td class="px-4 py-3 text-gray-800">Cut-01</td>
+                                    <td class="px-4 py-3 text-gray-800">0.195</td>
+                                    <td class="px-4 py-3 text-gray-800">YDS</td>
+                                    <td class="px-4 py-3 text-green-700 font-medium">Denim Fabric Scraps</td>
+                                    <td class="px-4 py-3 text-green-700 font-medium">By-product</td>
+                                    <td class="px-4 py-3 text-gray-800">$0.29 (e.g., @$1.50/YDS scrap value)</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                    <td class="px-4 py-3 text-gray-800">JEANS-SKY-HRANK-IND / Rev A</td>
+                                    <td class="px-4 py-3 text-gray-800">2025-02-01</td>
+                                    <td class="px-4 py-3 text-gray-800">PKG-CARD-JEAN-A</td>
+                                    <td class="px-4 py-3 text-gray-800">Recycled Cardboard Jean Box</td>
+                                    <td class="px-4 py-3 text-gray-800">PKG-01</td>
+                                    <td class="px-4 py-3 text-gray-800">0.043</td>
+                                    <td class="px-4 py-3 text-gray-800">KG</td>
+                                    <td class="px-4 py-3 text-green-700 font-medium">CARDBOARD-BALED</td>
+                                    <td class="px-4 py-3 text-green-700 font-medium">By-product</td>
+                                    <td class="px-4 py-3 text-gray-800">$0.01 (e.g., @$0.18/KG baled value)</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                    <td class="px-4 py-3 text-gray-800">POLO-BASIC-NAVY / Rev A</td>
+                                    <td class="px-4 py-3 text-gray-800">2025-01-20</td>
+                                    <td class="px-4 py-3 text-gray-800">FAB-PIQUE-NAVY</td>
+                                    <td class="px-4 py-3 text-gray-800">210gsm Navy Pique Cotton</td>
+                                    <td class="px-4 py-3 text-gray-800">Cut-01</td>
+                                    <td class="px-4 py-3 text-gray-800">0.117</td>
+                                    <td class="px-4 py-3 text-gray-800">KG</td>
+                                    <td class="px-4 py-3 text-yellow-700 font-medium">Potential for Cotton Scrap Recovery</td>
+                                    <td class="px-4 py-3 text-yellow-700 font-medium">Potential By-product</td>
+                                    <td class="px-4 py-3 text-gray-800">$0.04 (e.g., @$0.35/KG cotton scrap value)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Performance Analysis -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Performance and Variance Analysis</h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse bg-gray-50 rounded-xl overflow-hidden">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-6 py-4 text-left font-semibold text-gray-900 border-b border-gray-200">Analysis Area</th>
+                                <th class="px-6 py-4 text-left font-semibold text-gray-900 border-b border-gray-200">Variance (%)</th>
+                                <th class="px-6 py-4 text-left font-semibold text-gray-900 border-b border-gray-200">Impact Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="variance-table-body" class="divide-y divide-gray-200">
+                            <!-- Table rows populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Optimization Suggestions -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Optimization Suggestions</h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <ul id="optimization-list" class="space-y-4">
+                    <!-- Suggestions populated by JavaScript -->
+                </ul>
+            </div>
+        </section>
+        
+        <!-- Debug Panel -->
+        <section id="debug-panel" class="mb-16 bg-gray-800 rounded-2xl shadow-xl overflow-hidden animate-in" style="animation-delay: 0.8s;">
+            <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-white">Debug Panel</h2>
+                <button id="toggle-debug" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    Show Debug Info
+                </button>
+            </div>
+            <div id="debug-content" class="p-6 hidden">
+                <div class="bg-gray-900 p-4 rounded text-gray-200 text-sm font-mono overflow-x-auto">
+                    <pre id="debug-output">Waiting for debug info...</pre>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-blue-900 text-white py-16 relative footer">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- WasteConnect Column -->
+                <div>
+                    <h2 class="text-xl font-bold mb-4">WasteConnect</h2>
+                    <p class="text-gray-300 mb-6">Transforming waste management through AI-powered solutions. Join us in creating a sustainable future.</p>
+                    <div class="flex space-x-4">
+                        <a href="https://wasteconnect-frontend.onrender.com/" class="text-gray-300 hover:text-white">
+                            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                        <a href="https://wasteconnect-frontend.onrender.com/" class="text-gray-300 hover:text-white">
+                            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                            </svg>
+                        </a>
+                        <a href="https://wasteconnect-frontend.onrender.com/" class="text-gray-300 hover:text-white">
+                            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                        <a href="https://wasteconnect-frontend.onrender.com/" class="text-gray-300 hover:text-white">
+                            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Company Column -->
+                <div>
+                    <h2 class="text-xl font-bold mb-4">Company</h2>
+                    <ul class="space-y-2">
+                        <li><a href="https://wasteconnect-frontend.onrender.com/mission" class="text-gray-300 hover:text-white">About Us</a></li>
+                        <li><a href="https://wasteconnect-frontend.onrender.com/mission" class="text-gray-300 hover:text-white">Careers</a></li>
+                        <li><a href="https://wasteconnect-frontend.onrender.com/contact" class="text-gray-300 hover:text-white">Contact</a></li>
+                        <li><a href="https://wasteconnect-frontend.onrender.com/mission" class="text-gray-300 hover:text-white">Blog</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Solutions Column -->
+                <div>
+                    <h2 class="text-xl font-bold mb-4">Solutions</h2>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-300 hover:text-white">Waste Analysis</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">Optimization</a></li>
+                        <li><a href="https://wasteconnect-frontend.onrender.com/chat" class="text-gray-300 hover:text-white">Marketplace</a></li>
+                        <li><a href="https://wasteconnect-frontend.onrender.com/mission" class="text-gray-300 hover:text-white">Case Studies</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Resources Column -->
+                <div>
+                    <h2 class="text-xl font-bold mb-4">Resources</h2>
+                    <ul class="space-y-2">
+                        <li><a href="https://wasteconnect-frontend.onrender.com/mission" class="text-gray-300 hover:text-white">Documentation</a></li>
+                        <li><a href="https://wasteconnect-frontend.onrender.com/mission" class="text-gray-300 hover:text-white">API</a></li>
+                        <li><a href="https://wasteconnect-frontend.onrender.com/contact" class="text-gray-300 hover:text-white">Support</a></li>
+                        <li><a href="https://wasteconnect-frontend.onrender.com/mission" class="text-gray-300 hover:text-white">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Newsletter Subscription -->
+            <div class="mt-12 pt-8 border-t border-blue-800">
+                <h3 class="text-xl font-bold mb-4">Subscribe to Our Newsletter</h3>
+                <p class="text-gray-300 mb-4">Stay updated with the latest news and insights in waste management.</p>
+                <form class="sm:flex max-w-md" action="https://wasteconnect-frontend.onrender.com/contact" method="get">
+                    <label for="email-address" class="sr-only">Email address</label>
+                    <input id="email-address" name="email" type="email" autocomplete="email" required class="w-full px-4 py-2 placeholder-gray-500 border border-transparent rounded-md bg-blue-800 text-white focus:ring-2 focus:ring-blue-600 focus:border-transparent" placeholder="Enter your email">
+                    <div class="mt-3 rounded-md sm:mt-0 sm:ml-3">
+                        <button type="submit" class="w-full bg-white text-blue-900 font-medium py-2 px-4 border border-transparent rounded-md hover:bg-blue-100">SUBSCRIBE</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Copyright Bar -->
+            <div class="mt-12 pt-8 border-t border-blue-800 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-300">© 2025 WasteConnect. All rights reserved.</p>
+                <div class="flex space-x-6 mt-4 md:mt-0">
+                    <a href="https://wasteconnect-frontend.onrender.com/mission" class="text-gray-300 hover:text-white">Terms of Service</a>
+                    <a href="https://wasteconnect-frontend.onrender.com/mission" class="text-gray-300 hover:text-white">Privacy Policy</a>
+                    <a href="https://wasteconnect-frontend.onrender.com/mission" class="text-gray-300 hover:text-white">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Simple demo data
+        const chartData = {
+            pipeline: {
+                labels: ['Fabric Receiving', 'Cutting', 'Sewing', 'Washing', 'Finishing', 'Packing'],
+                efficiency: [95, 82, 88, 78, 92, 97],
+                waste: [85, 430, 125, 290, 110, 45],
+                byproduct: [320, 540, 210, 90, 60, 120]
+            },
+            waste: {
+                labels: ['Chemical Waste', 'Mixed Textile Waste', 'Dye Waste', 'Packaging Waste', 'Thread Waste'],
+                costs: [4200, 3100, 2200, 1100, 850]
+            },
+            byproduct: {
+                labels: ['Denim Scraps', 'Cotton Cuttings', 'Metal Buttons', 'Fabric Selvage', 'Thread Spools'],
+                revenue: [3800, 2900, 1800, 1200, 700]
+            },
+            variance: [
+                { area: "Material Consumption", variance: "+12.3%", impact: "Higher than planned fabric usage in cutting stage due to pattern inefficiency" },
+                { area: "Waste Generation", variance: "+8.7%", impact: "Increased chemical waste in washing process exceeding planned parameters" },
+                { area: "By-product Recovery", variance: "-3.2%", impact: "Lower recovery rate of reusable materials than expected targets" },
+                { area: "Disposal Costs", variance: "+15.1%", impact: "Higher waste handling fees due to increased volume and new regulations" },
+                { area: "By-product Revenue", variance: "-5.8%", impact: "Lower market prices for textile by-products affecting overall recovery value" }
+            ],
+            optimization: [
+                "Improve cutting room layout and pattern efficiency to reduce fabric waste by an estimated 7-9%",
+                "Implement chemical recovery system in washing process to reduce disposal costs by approximately $1,800/month",
+                "Establish formal sorting protocol for textile waste streams to increase by-product recovery by 12-15%",
+                "Partner with local upcycling workshop to convert denim scraps to higher-value products",
+                "Adjust production scheduling to batch similar colors, reducing dye waste by an estimated 22%"
+            ]
+        };
+
+        // Create charts on document load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, creating charts...');
+            
+            // Set current date 
+            const dateElement = document.getElementById('generation-date');
+            if (dateElement) {
+                dateElement.textContent = new Date().toLocaleDateString();
+            }
+            
+            // Initialize debug panel
+            const toggleDebugBtn = document.getElementById('toggle-debug');
+            const debugContent = document.getElementById('debug-content');
+            if (toggleDebugBtn && debugContent) {
+                toggleDebugBtn.addEventListener('click', function() {
+                    debugContent.classList.toggle('hidden');
+                    toggleDebugBtn.textContent = debugContent.classList.contains('hidden') ? 'Show Debug Info' : 'Hide Debug Info';
+                });
+            }
+            
+            // Create Pipeline Efficiency Chart
+            createChart('pipelinePercentageChart', 'bar', 
+                chartData.pipeline.labels, 
+                [{
+                    label: 'Efficiency (%)',
+                    data: chartData.pipeline.efficiency,
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }],
+                {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { callback: value => value + '%' }
+                        }
+                    }
+                }
+            );
+            
+            // Create Pipeline Volume Chart
+            createChart('pipelineVolumeChart', 'bar',
+                chartData.pipeline.labels,
+                [
+                    {
+                        label: 'Waste (kg)',
+                        data: chartData.pipeline.waste,
+                        backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'By-product (kg)',
+                        data: chartData.pipeline.byproduct,
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            );
+            
+            // Create Waste Cost Chart
+            createChart('wasteCostChart', 'bar',
+                chartData.waste.labels,
+                [{
+                    label: 'Cost ($)',
+                    data: chartData.waste.costs,
+                    backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    borderWidth: 1
+                }],
+                {
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { callback: value => '$' + value }
+                        }
+                    }
+                }
+            );
+            
+            // Create Byproduct Revenue Chart
+            createChart('byproductRevenueChart', 'bar',
+                chartData.byproduct.labels,
+                [{
+                    label: 'Revenue ($)',
+                    data: chartData.byproduct.revenue,
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 1
+                }],
+                {
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { callback: value => '$' + value }
+                        }
+                    }
+                }
+            );
+            
+            // Fill variance table
+            const varianceTable = document.getElementById('variance-table-body');
+            if (varianceTable) {
+                varianceTable.innerHTML = '';
+                chartData.variance.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-100 transition-colors duration-150';
+                    
+                    const areaCell = document.createElement('td');
+                    areaCell.className = 'px-6 py-4 text-gray-800 font-medium';
+                    areaCell.textContent = item.area;
+                    
+                    const varianceCell = document.createElement('td');
+                    varianceCell.className = 'px-6 py-4';
+                    const isNegative = item.variance.includes('-');
+                    varianceCell.classList.add(isNegative ? 'text-red-600' : 'text-green-600');
+                    varianceCell.textContent = item.variance;
+                    
+                    const impactCell = document.createElement('td');
+                    impactCell.className = 'px-6 py-4 text-gray-700';
+                    impactCell.textContent = item.impact;
+                    
+                    row.appendChild(areaCell);
+                    row.appendChild(varianceCell);
+                    row.appendChild(impactCell);
+                    
+                    varianceTable.appendChild(row);
+                });
+            }
+            
+            // Fill optimization list
+            const optimizationList = document.getElementById('optimization-list');
+            if (optimizationList) {
+                optimizationList.innerHTML = '';
+                chartData.optimization.forEach(suggestion => {
+                    const item = document.createElement('li');
+                    item.className = 'bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200';
+                    
+                    const content = document.createElement('div');
+                    content.className = 'flex items-start';
+                    
+                    const iconDiv = document.createElement('div');
+                    iconDiv.className = 'mr-3 mt-0.5 text-green-500 flex-shrink-0';
+                    iconDiv.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>';
+                    
+                    const text = document.createElement('p');
+                    text.className = 'text-gray-700';
+                    text.textContent = suggestion;
+                    
+                    content.appendChild(iconDiv);
+                    content.appendChild(text);
+                    item.appendChild(content);
+                    
+                    optimizationList.appendChild(item);
+                });
+            }
+            
+            console.log('All charts and data loaded successfully');
+        });
+        
+        // Helper function to create charts
+        function createChart(canvasId, type, labels, datasets, additionalOptions = {}) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error(`Canvas with ID ${canvasId} not found`);
+                return;
+            }
+            
+            try {
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    console.error(`Could not get 2D context for ${canvasId}`);
+                    return;
+                }
+                
+                const options = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: datasets.length > 1
+                        }
+                    },
+                    ...additionalOptions
+                };
+                
+                new Chart(ctx, {
+                    type: type,
+                    data: {
+                        labels: labels,
+                        datasets: datasets
+                    },
+                    options: options
+                });
+                
+                console.log(`Chart ${canvasId} created successfully`);
+            } catch (error) {
+                console.error(`Error creating chart ${canvasId}:`, error);
+            }
+        }
+    </script>
+</body>
+</html>
